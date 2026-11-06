@@ -1,1 +1,45 @@
 # audio-guide
+
+A virtual audio guide: share your location, pick a story length and mood, and get a short podcast-style story about the place you're standing in. See [handoff.md](handoff.md) for the full plan.
+
+## Local development
+
+Requirements: Docker Desktop. [uv](https://docs.astral.sh/uv/) is optional and only needed for managing Python dependencies.
+
+```sh
+cp .env.example .env          # first time only
+docker compose up --build     # starts Postgres + the API with hot reload
+```
+
+- API health: http://localhost:8000/api/health
+- Interactive API docs: http://localhost:8000/api/docs
+- Postgres (for psql / GUI tools): `localhost:5433`, with the user, password, and DB from `.env`
+
+Migrations run automatically when the API container starts.
+
+### Common commands
+
+```sh
+docker compose exec api pytest                          # run tests
+docker compose exec db psql -U audioguide -d audioguide # SQL shell
+docker compose exec api alembic revision --autogenerate -m "add places"  # new migration
+docker compose exec api alembic upgrade head            # apply migrations
+docker compose down          # stop (data is kept in the pgdata volume)
+docker compose down -v       # stop AND delete the database
+```
+
+### Adding Python dependencies
+
+```sh
+cd backend
+uv add some-package          # or: uv add --dev some-package
+docker compose up --build    # rebuild the API image with the new lockfile
+```
+
+## Layout
+
+```
+backend/     FastAPI app (app/), Alembic migrations (migrations/), tests, Dockerfile
+db/          Postgres image with PostGIS + pgvector
+docker-compose.yml   local dev stack
+```
