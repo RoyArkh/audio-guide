@@ -41,6 +41,19 @@ def test_fetch_sitelink_counts_splits_large_requests_into_batches():
     assert counts == {i: 1 for i in ids}
 
 
+def test_fetch_article_text_returns_the_plain_text():
+    client = fake_client([], article_text="The Eiffel Tower is a tower.")
+
+    assert wikimedia.fetch_article_text(client, 1) == "The Eiffel Tower is a tower."
+
+
+def test_fetch_article_text_raises_when_the_page_has_no_text():
+    client = failing_client(status_code=200, json={"query": {"pages": [{"pageid": 1, "missing": True}]}})
+
+    with pytest.raises(wikimedia.WikimediaError, match="No article text"):
+        wikimedia.fetch_article_text(client, 1)
+
+
 def test_http_error_raises_wikimedia_error():
     with pytest.raises(wikimedia.WikimediaError):
         wikimedia.search_nearby_pages(failing_client(status_code=503), 48.85, 2.29, 2_000)

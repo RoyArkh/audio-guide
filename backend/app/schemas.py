@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from app import wikimedia
 from app.places import Candidate
+from app.scripts import Length, Mood
 
 
 class CandidateOut(BaseModel):
@@ -37,3 +38,32 @@ class NearbyPlacesOut(BaseModel):
     place_id: int
     place: CandidateOut
     runners_up: list[CandidateOut]
+
+
+class ScriptRequest(BaseModel):
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [{"lat": 48.8556, "lng": 2.2986, "length": "short", "mood": "historical"}],
+    })
+
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    length: Length
+    mood: Mood
+
+
+class SourceOut(BaseModel):
+    title: str
+    url: str
+    license: str
+
+
+class ScriptOut(BaseModel):
+    place_id: int
+    place: CandidateOut
+    length: Length
+    mood: Mood
+    target_words: int
+    word_count: int
+    script: str
+    facts: list[str]
+    sources: list[SourceOut]

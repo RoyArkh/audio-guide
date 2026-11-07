@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.db import engine
 from app.main import app
 
@@ -14,6 +15,11 @@ def db_session():
         yield session
         session.close()
         transaction.rollback()
+
+
+@pytest.fixture(autouse=True)
+def fake_llm_api_key(monkeypatch):
+    monkeypatch.setattr(settings, "llm_api_key", "test-key")
 
 
 @pytest.fixture(autouse=True)

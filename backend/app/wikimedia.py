@@ -80,6 +80,21 @@ def fetch_sitelink_counts(client: httpx2.Client, wikidata_ids: list[str]) -> dic
     return counts
 
 
+def fetch_article_text(client: httpx2.Client, page_id: int) -> str:
+    """The whole article as plain text, with "== Section ==" headings."""
+    data = _get_json(client, WIKIPEDIA_API, {
+        "action": "query",
+        "prop": "extracts",
+        "explaintext": 1,
+        "pageids": page_id,
+    })
+    pages = data.get("query", {}).get("pages", [])
+    text = pages[0].get("extract") if pages else None
+    if not text:
+        raise WikimediaError(f"No article text for page {page_id}")
+    return text
+
+
 def wikipedia_url(page_id: int) -> str:
     return f"https://{WIKI_LANG}.wikipedia.org/?curid={page_id}"
 

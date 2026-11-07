@@ -16,14 +16,10 @@ router = APIRouter(tags=["places"])
 RUNNERS_UP_SHOWN = 9
 
 
-@router.get("/places/nearby", response_model=NearbyPlacesOut)
-def nearby_places(
-    lat: Annotated[float, Query(ge=-90, le=90)],
-    lng: Annotated[float, Query(ge=-180, le=180)],
-    session: Session = Depends(get_session),
-    client: httpx2.Client = Depends(wikimedia.get_client),
-):
-    """Find the best place to tell a story about, plus the runners-up for debugging."""
+def find_and_save_candidates(
+    session: Session, client: httpx2.Client, lat: float, lng: float,
+) -> tuple[int, list[places.Candidate]]:
+    """Candidates best first, and the saved best place's id. Raises 502 or 404."""
     try:
         candidates = places.find_candidates(client, lat, lng)
     except wikimedia.WikimediaError:
@@ -34,12 +30,24 @@ def nearby_places(
         radius_km = places.SEARCH_RADII_M[-1] // 1000
         raise HTTPException(status_code=404, detail=f"No places found within {radius_km} km")
 
-    best, *others = candidates
-    place = places.save_place(session, best)
+    place = places.save_place(session, candidates[0])
     session.commit()
+    return place.id, candidates
+
+
+@router.get("/places/nearby", response_model=NearbyPlacesOut)
+def nearby_places(
+    lat: Annotated[float, Query(ge=-90, le=90)],
+    lng: Annotated[float, Query(ge=-180, le=180)],
+    session: Session = Depends(get_session),
+    client: httpx2.Client = Depends(wikimedia.get_client),
+):
+    """Find the best place to tell a story about, plus the runners-up for debugging."""
+    place_id, candidates = find_and_save_candidates(session, client, lat, lng)
+    best, *others = candidates
 
     return NearbyPlacesOut(
-        place_id=place.id,
+        place_id=place_id,
         place=CandidateOut.from_candidate(best),
         runners_up=[CandidateOut.from_candidate(c) for c in others[:RUNNERS_UP_SHOWN]],
     )

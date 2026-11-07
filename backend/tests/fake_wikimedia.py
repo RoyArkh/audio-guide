@@ -16,10 +16,14 @@ def wiki_page(page_id: int, title: str, distance_m: float, wikidata_id: str | No
     return page
 
 
-def fake_client(pages: list[dict], sitelinks: dict[str, int] | None = None) -> httpx2.Client:
+def fake_client(pages: list[dict], sitelinks: dict[str, int] | None = None,
+                article_text: str = "Article text.") -> httpx2.Client:
     sitelinks = sitelinks or {}
 
     def handler(request: httpx2.Request) -> httpx2.Response:
+        if request.url.params.get("prop") == "extracts":
+            page = {"pageid": int(request.url.params["pageids"]), "extract": article_text}
+            return httpx2.Response(200, json={"query": {"pages": [page]}})
         if request.url.host == "en.wikipedia.org":
             # Like the real API, an empty search has no "query" key at all.
             return httpx2.Response(200, json={"query": {"pages": pages}} if pages else {})
