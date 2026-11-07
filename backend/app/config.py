@@ -1,13 +1,11 @@
-"""App settings, read from environment variables (see .env.example at the repo root)."""
-
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # e.g. postgresql+psycopg://user:password@db:5432/audioguide
-    # ("db" is the Postgres service name on the Docker Compose network).
     database_url: str
     app_env: str = "dev"
+    # Wikimedia asks API clients to identify themselves with a contact URL.
+    wikimedia_user_agent: str = "audioguide/0.1 (https://audioguide.royaarkh.com)"
 
 
 settings = Settings()

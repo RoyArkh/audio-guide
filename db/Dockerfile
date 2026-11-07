@@ -1,6 +1,4 @@
-# Official Postgres image (multi-arch: works on Apple Silicon and the amd64 server)
-# plus PostGIS and pgvector from the PostgreSQL apt repo that the image already
-# has configured. $PG_MAJOR is set by the base image (18 here).
+# Official image (multi-arch) + extensions from the PostgreSQL apt repo it already uses.
 FROM postgres:18-trixie
 
 RUN apt-get update \

@@ -8,16 +8,15 @@ from app.db import get_session
 
 router = APIRouter(tags=["health"])
 
+EXTENSION_VERSIONS_SQL = text(
+    "SELECT extname, extversion FROM pg_extension WHERE extname IN ('postgis', 'vector')"
+)
+
 
 @router.get("/health")
 def health(session: Session = Depends(get_session)):
-    """Liveness + database check. Returns 503 if Postgres can't be reached."""
     try:
-        versions = dict(
-            session.execute(
-                text("SELECT extname, extversion FROM pg_extension WHERE extname IN ('postgis', 'vector')")
-            ).all()
-        )
+        versions = dict(session.execute(EXTENSION_VERSIONS_SQL).all())
     except SQLAlchemyError as exc:
         return JSONResponse(
             status_code=503,
@@ -27,7 +26,6 @@ def health(session: Session = Depends(get_session)):
     return {
         "status": "ok",
         "database": "ok",
-        # None here means the extension isn't enabled yet (run `alembic upgrade head`).
         "postgis": versions.get("postgis"),
         "pgvector": versions.get("vector"),
     }

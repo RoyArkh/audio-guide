@@ -1,9 +1,12 @@
+import logging
+
 from fastapi import FastAPI
 
-from app.routers import health
+from app.routers import health, places
 
-# Every route lives under /api so that, in production, Caddy can send /api/*
-# to this app and everything else to the static web build.
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+# Everything lives under /api so Caddy can route /api/* here and the rest to the web build.
 app = FastAPI(
     title="Virtual Audioguide API",
     docs_url="/api/docs",
@@ -12,3 +15,4 @@ app = FastAPI(
 )
 
 app.include_router(health.router, prefix="/api")
+app.include_router(places.router, prefix="/api")

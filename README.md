@@ -13,6 +13,7 @@ docker compose up --build     # starts Postgres + the API with hot reload
 
 - API health: http://localhost:8000/api/health
 - Interactive API docs: http://localhost:8000/api/docs
+- Nearest notable place: http://localhost:8000/api/places/nearby?lat=48.8556&lng=2.2986
 - Postgres (for psql / GUI tools): `localhost:5433`, with the user, password, and DB from `.env`
 
 Migrations run automatically when the API container starts.
