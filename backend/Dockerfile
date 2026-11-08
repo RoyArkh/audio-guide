@@ -1,5 +1,10 @@
 FROM python:3.14-slim-trixie
 
+# ffmpeg encodes the generated speech to MP3.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=astral/uv:0.13.5 /uv /uvx /bin/
 
 # The venv lives outside /app so the dev bind mount over /app doesn't hide it.

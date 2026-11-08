@@ -67,3 +67,18 @@ class ScriptOut(BaseModel):
     script: str
     facts: list[str]
     sources: list[SourceOut]
+
+
+class AudioRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, json_schema_extra={
+        "examples": [{"text": "Welcome to the Eiffel Tower.\n\nIt was built in 1889.", "mood": "historical"}],
+    })
+
+    text: str = Field(min_length=1, max_length=20_000)
+    mood: Mood
+
+
+class AudioOut(BaseModel):
+    audio_url: str
+    duration_seconds: float
+    chunks: int

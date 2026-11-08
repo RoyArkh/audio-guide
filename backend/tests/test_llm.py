@@ -8,11 +8,6 @@ from app.config import settings
 from tests.fake_llm import chat_response, fake_llm_client
 
 
-@pytest.fixture(autouse=True)
-def no_retry_delays(monkeypatch):
-    monkeypatch.setattr(llm, "RETRY_DELAYS_S", [0, 0, 0])
-
-
 def test_chat_sends_model_and_messages_and_returns_the_reply():
     requests = []
     client = fake_llm_client([chat_response("  Hello!  ")], requests)
