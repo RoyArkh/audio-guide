@@ -95,6 +95,14 @@ def fetch_article_text(client: httpx2.Client, page_id: int) -> str:
     return text
 
 
+WIKIPEDIA_LICENSE = "CC BY-SA 4.0"
+
+
+def attribution(page: WikiPage) -> dict:
+    """Wikipedia text is CC BY-SA: stories based on it must credit the article."""
+    return {"title": f"{page.title} (Wikipedia)", "url": wikipedia_url(page.page_id), "license": WIKIPEDIA_LICENSE}
+
+
 def wikipedia_url(page_id: int) -> str:
     return f"https://{WIKI_LANG}.wikipedia.org/?curid={page_id}"
 

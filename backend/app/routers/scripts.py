@@ -7,18 +7,15 @@ from sqlalchemy.orm import Session
 from app import llm, scripts, wikimedia
 from app.db import get_session
 from app.routers.places import find_and_save_candidates
-from app.schemas import CandidateOut, ScriptOut, ScriptRequest, SourceOut
+from app.schemas import CandidateOut, ScriptOut, StoryRequest, SourceOut
 
 log = logging.getLogger(__name__)
 
 router = APIRouter(tags=["scripts"])
 
-WIKIPEDIA_LICENSE = "CC BY-SA 4.0"
-
-
 @router.post("/scripts", response_model=ScriptOut)
 def create_script(
-    body: ScriptRequest,
+    body: StoryRequest,
     session: Session = Depends(get_session),
     wiki_client: httpx2.Client = Depends(wikimedia.get_client),
     llm_client: httpx2.Client = Depends(llm.get_client),
@@ -53,9 +50,5 @@ def create_script(
         word_count=len(script.split()),
         script=script,
         facts=facts,
-        sources=[SourceOut(
-            title=f"{page.title} (Wikipedia)",
-            url=wikimedia.wikipedia_url(page.page_id),
-            license=WIKIPEDIA_LICENSE,
-        )],
+        sources=[SourceOut(**wikimedia.attribution(page))],
     )

@@ -1,8 +1,12 @@
+import uuid
+
 from pydantic import BaseModel, ConfigDict, Field
 
-from app import wikimedia
+from app import places, wikimedia
+from app.models import Job, JobStatus
 from app.places import Candidate
 from app.scripts import Length, Mood
+from app.storage import Storage
 
 
 class CandidateOut(BaseModel):
@@ -40,7 +44,7 @@ class NearbyPlacesOut(BaseModel):
     runners_up: list[CandidateOut]
 
 
-class ScriptRequest(BaseModel):
+class StoryRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "examples": [{"lat": 48.8556, "lng": 2.2986, "length": "short", "mood": "historical"}],
     })
@@ -82,3 +86,53 @@ class AudioOut(BaseModel):
     audio_url: str
     duration_seconds: float
     chunks: int
+
+
+class StoryCreated(BaseModel):
+    job_id: uuid.UUID
+
+
+class StoryPlaceOut(BaseModel):
+    name: str
+    description: str | None
+    wikipedia_url: str
+    distance_m: int
+    at_place: bool
+
+
+class StoryOut(BaseModel):
+    job_id: uuid.UUID
+    status: JobStatus
+    length: Length
+    mood: Mood
+    place: StoryPlaceOut | None
+    transcript: str | None
+    audio_url: str | None
+    duration_seconds: float | None
+    sources: list[SourceOut]
+    error: str | None
+
+    @classmethod
+    def from_job(cls, job: Job, storage: Storage) -> "StoryOut":
+        place = None
+        if job.place is not None and job.distance_m is not None:
+            place = StoryPlaceOut(
+                name=job.place.name,
+                description=job.place.description,
+                wikipedia_url=wikimedia.wikipedia_url(job.place.wikipedia_page_id),
+                distance_m=round(job.distance_m),
+                at_place=places.is_at_place(job.distance_m),
+            )
+        episode = job.episode
+        return cls(
+            job_id=job.id,
+            status=job.status,
+            length=job.length,
+            mood=job.mood,
+            place=place,
+            transcript=episode.script_text if episode else None,
+            audio_url=storage.url(episode.audio_key) if episode else None,
+            duration_seconds=episode.duration_seconds if episode else None,
+            sources=episode.sources if episode else [],
+            error=job.error,
+        )

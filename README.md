@@ -14,8 +14,8 @@ docker compose up --build     # starts Postgres + the API with hot reload
 - API health: http://localhost:8000/api/health
 - Interactive API docs: http://localhost:8000/api/docs
 - Nearest notable place: http://localhost:8000/api/places/nearby?lat=48.8556&lng=2.2986
-- Story script: `POST /api/scripts`. Try it from the API docs page. It needs `LLM_API_KEY` in `.env`: a free Gemini key from Google AI Studio. After editing `.env`, run `docker compose up -d api` so the container picks it up.
-- Story audio: `POST /api/audio` with a script and mood (paste one from `/api/scripts`). It needs `TTS_API_KEY` in `.env` (the same Gemini key works). The MP3 is saved in `backend/media/` and served at `/api/media/...`.
+- **Make a story:** `POST /api/stories` with `{lat, lng, length, mood}` returns a `job_id`. Then poll `GET /api/stories/{job_id}` until `status` is `done` (with transcript, audio URL, and sources) or `failed` (with `error`). It needs `LLM_API_KEY` and `TTS_API_KEY` in `.env`: one free Gemini key from Google AI Studio works for both. After editing `.env`, run `docker compose up -d` so the container picks it up.
+- Single pipeline steps, for trying out prompts and voices (only when `APP_ENV=dev`): `POST /api/scripts` writes a script, and `POST /api/audio` speaks a script. MP3s are saved in `backend/media/` and served at `/api/media/...`.
 - Postgres (for psql / GUI tools): `localhost:5433`, with the user, password, and DB from `.env`
 
 Migrations run automatically when the API container starts.

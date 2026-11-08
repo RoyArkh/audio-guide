@@ -107,8 +107,12 @@ def wav_to_pcm(wav_file: bytes) -> bytes:
     return pcm
 
 
+def make_client() -> httpx2.Client:
+    headers = {"x-goog-api-key": settings.tts_api_key}
+    return httpx2.Client(base_url=GEMINI_API, headers=headers, timeout=180.0)
+
+
 def get_tts() -> Iterator[TTSProvider]:
     """FastAPI dependency; tests override it with a fake provider."""
-    headers = {"x-goog-api-key": settings.tts_api_key}
-    with httpx2.Client(base_url=GEMINI_API, headers=headers, timeout=180.0) as client:
+    with make_client() as client:
         yield GeminiTTS(client)

@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 AT_PLACE_RADIUS_M = 250
 SEARCH_RADII_M = [2_000, 5_000, 10_000]  # GeoSearch allows at most 10 km
+NO_PLACES_MESSAGE = f"No places found within {SEARCH_RADII_M[-1] // 1000} km"
 # Added to the distance so that a place 10 m away doesn't beat a famous one
 # 200 m away just because 10 is tiny. Larger values favour fame over closeness.
 DISTANCE_OFFSET_M = 150
@@ -29,7 +30,11 @@ class Candidate:
 
     @property
     def at_place(self) -> bool:
-        return self.page.distance_m <= AT_PLACE_RADIUS_M
+        return is_at_place(self.page.distance_m)
+
+
+def is_at_place(distance_m: float) -> bool:
+    return distance_m <= AT_PLACE_RADIUS_M
 
 
 def score(sitelinks: int, distance_m: float) -> float:

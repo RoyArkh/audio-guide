@@ -5,7 +5,7 @@ from app import llm, wikimedia
 from app.db import get_session
 from app.main import app
 from tests.fake_llm import chat_response, fake_llm_client
-from tests.fake_wikimedia import fake_client, wiki_page
+from tests.fake_wikimedia import eiffel_tower_wikipedia
 
 PARIS = {"lat": 48.8556, "lng": 2.2986, "length": "short", "mood": "historical"}
 
@@ -15,14 +15,6 @@ def api_client(db_session, wikimedia_client, llm_client) -> TestClient:
     app.dependency_overrides[wikimedia.get_client] = lambda: wikimedia_client
     app.dependency_overrides[llm.get_client] = lambda: llm_client
     return TestClient(app)
-
-
-def eiffel_tower_wikipedia():
-    return fake_client(
-        [wiki_page(1, "Eiffel Tower", 418, "Q243")],
-        sitelinks={"Q243": 191},
-        article_text="The Eiffel Tower was built in 1889. It is 330 m tall.",
-    )
 
 
 def test_create_script_returns_script_facts_and_sources(db_session):

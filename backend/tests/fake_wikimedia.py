@@ -34,6 +34,14 @@ def fake_client(pages: list[dict], sitelinks: dict[str, int] | None = None,
     return httpx2.Client(transport=httpx2.MockTransport(handler))
 
 
+def eiffel_tower_wikipedia() -> httpx2.Client:
+    return fake_client(
+        [wiki_page(1, "Eiffel Tower", 418, "Q243")],
+        sitelinks={"Q243": 191},
+        article_text="The Eiffel Tower was built in 1889. It is 330 m tall.",
+    )
+
+
 def geosearch_client(pages: list[dict], searched_radii: list[int]) -> httpx2.Client:
     """Like the real GeoSearch, returns only the pages within the requested radius."""
 

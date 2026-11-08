@@ -27,8 +27,7 @@ def find_and_save_candidates(
         raise HTTPException(status_code=502, detail="Wikipedia lookup failed, try again shortly")
 
     if not candidates:
-        radius_km = places.SEARCH_RADII_M[-1] // 1000
-        raise HTTPException(status_code=404, detail=f"No places found within {radius_km} km")
+        raise HTTPException(status_code=404, detail=places.NO_PLACES_MESSAGE)
 
     place = places.save_place(session, candidates[0])
     session.commit()
