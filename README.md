@@ -4,12 +4,22 @@ A virtual audio guide: share your location, pick a story length and mood, and ge
 
 ## Local development
 
-Requirements: Docker Desktop. [uv](https://docs.astral.sh/uv/) is optional and only needed for managing Python dependencies.
+Requirements: Docker Desktop and Node.js (for the web app). [uv](https://docs.astral.sh/uv/) is optional and only needed for managing Python dependencies.
 
 ```sh
 cp .env.example .env          # first time only
 docker compose up --build     # starts Postgres + the API with hot reload
 ```
+
+In a second terminal, start the web app (Expo, with hot reload):
+
+```sh
+cd web
+npm install                   # first time only
+npm run web                   # http://localhost:8081
+```
+
+The web app calls the API at `localhost:8000`. On a desktop, use "Or pick a spot yourself" or the famous-place buttons, since your real location is probably nowhere famous.
 
 - API health: http://localhost:8000/api/health
 - Interactive API docs: http://localhost:8000/api/docs
@@ -24,6 +34,7 @@ Migrations run automatically when the API container starts.
 
 ```sh
 docker compose exec api pytest                          # run tests
+cd web && npm run typecheck                             # check the web app's TypeScript
 docker compose exec db psql -U audioguide -d audioguide # SQL shell
 docker compose exec api alembic revision --autogenerate -m "add places"  # new migration
 docker compose exec api alembic upgrade head            # apply migrations
@@ -43,6 +54,7 @@ docker compose up --build    # rebuild the API image with the new lockfile
 
 ```
 backend/     FastAPI app (app/), Alembic migrations (migrations/), tests, Dockerfile
+web/         Expo web app: screens in src/app/, shared pieces in src/components/
 db/          Postgres image with PostGIS + pgvector
 docker-compose.yml   local dev stack
 ```

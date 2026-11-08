@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app import stories
@@ -43,6 +44,15 @@ if settings.app_env == "dev":
     # exposes /stories, so nobody can spend the API quota on arbitrary text.
     app.include_router(scripts.router, prefix="/api")
     app.include_router(audio.router, prefix="/api")
+
+    # The Expo dev server (localhost:8081) calls the API on another port. In production
+    # both come from the same domain, so no CORS is needed.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 Path(settings.media_dir).mkdir(parents=True, exist_ok=True)
 app.mount(MEDIA_URL_PREFIX, StaticFiles(directory=settings.media_dir), name="media")
