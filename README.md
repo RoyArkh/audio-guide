@@ -50,11 +50,18 @@ uv add some-package          # or: uv add --dev some-package
 docker compose up --build    # rebuild the API image with the new lockfile
 ```
 
+## Deploying
+
+See [DEPLOY.md](DEPLOY.md): one-time DNS, R2, and server setup, then `scripts/deploy.sh`.
+
 ## Layout
 
 ```
-backend/     FastAPI app (app/), Alembic migrations (migrations/), tests, Dockerfile
-web/         Expo web app: screens in src/app/, shared pieces in src/components/
-db/          Postgres image with PostGIS + pgvector
-docker-compose.yml   local dev stack
+backend/                 FastAPI app (app/), Alembic migrations (migrations/), tests, Dockerfile
+web/                     Expo web app: screens in src/app/, shared pieces in src/components/
+db/                      Postgres image with PostGIS + pgvector
+docker-compose.yml       local dev stack
+docker-compose.prod.yml  production: Caddy + API + Postgres
+Caddyfile                HTTPS and routing in production
+scripts/                 deploy.sh (run on the Mac), backup.sh (nightly on the server)
 ```

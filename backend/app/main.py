@@ -11,7 +11,7 @@ from app.config import settings
 from app.db import SessionLocal
 from app.routers import audio, health, places, scripts
 from app.routers import stories as stories_router
-from app.storage import MEDIA_URL_PREFIX
+from app.storage import MEDIA_URL_PREFIX, get_storage
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    get_storage()  # fail at startup, not on the first story, if the storage settings are wrong
     with SessionLocal() as session:
         interrupted = stories.fail_interrupted_jobs(session)
     if interrupted:
@@ -54,5 +55,6 @@ if settings.app_env == "dev":
         allow_headers=["*"],
     )
 
-Path(settings.media_dir).mkdir(parents=True, exist_ok=True)
-app.mount(MEDIA_URL_PREFIX, StaticFiles(directory=settings.media_dir), name="media")
+if settings.storage == "local":
+    Path(settings.media_dir).mkdir(parents=True, exist_ok=True)
+    app.mount(MEDIA_URL_PREFIX, StaticFiles(directory=settings.media_dir), name="media")

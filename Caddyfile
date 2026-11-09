@@ -1,0 +1,16 @@
+# Caddy gets and renews the HTTPS certificate for this domain by itself.
+# It needs the DNS A record audioguide.royaarkh.com -> 198.44.107.7 and ports 80/443 open.
+audioguide.royaarkh.com {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# The web app is a single page: paths like /story/<id> are handled by index.html.
+	handle {
+		root * /srv/web
+		try_files {path} /index.html
+		file_server
+	}
+}

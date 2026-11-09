@@ -5,6 +5,7 @@ description = "FastAPI backend for the virtual audioguide"
 requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.20.1",
+    "boto3>=1.43.126",
     "fastapi>=0.162.0",
     "geoalchemy2>=0.21.0",
     "httpx2>=2.16.0",

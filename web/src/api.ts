@@ -67,9 +67,9 @@ export function isFinished(status: StoryStatus): boolean {
   return status === 'done' || status === 'failed';
 }
 
-// The API returns paths like /api/media/audio/x.mp3.
-export function fullUrl(path: string): string {
-  return API_URL + path;
+// Audio is a path like /api/media/audio/x.mp3 in dev, and a full (signed R2) URL in production.
+export function fullUrl(url: string): string {
+  return url.startsWith('/') ? API_URL + url : url;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
