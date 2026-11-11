@@ -3,6 +3,12 @@
 audioguide.royaarkh.com {
 	encode zstd gzip
 
+	# Every page and API call needs the login, so strangers can't spend AI credits.
+	# Both values come from the server's .env (see DEPLOY.md).
+	basic_auth {
+		{$SITE_USER} {$SITE_PASSWORD_HASH}
+	}
+
 	handle /api/* {
 		reverse_proxy api:8000
 	}

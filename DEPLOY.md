@@ -2,7 +2,7 @@
 
 Production runs on the RackNerd server (`roya@198.44.107.7`) with `docker-compose.prod.yml`:
 
-- **Caddy** serves the web app and HTTPS, and passes `/api/*` to the API. It's the only container with open ports (80/443).
+- **Caddy** serves the web app and HTTPS, and passes `/api/*` to the API. It's the only container with open ports (80/443), and it asks for a username and password before showing anything.
 - **api** is FastAPI and the story pipeline. Audio goes to Cloudflare R2.
 - **db** is Postgres, reachable only by the other containers.
 
@@ -39,12 +39,26 @@ R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 R2_BUCKET=audio-guide
+SITE_USER=roya
+SITE_PASSWORD_HASH=''
 EOF
 chmod 600 .env   # only you can read it
 nano .env        # fill in the empty values; save with Ctrl+O, Enter, then Ctrl+X
 ```
 
 The database password is generated randomly and never needs to be typed. The Gemini key goes into both `LLM_API_KEY` and `TTS_API_KEY`. This file never leaves the server.
+
+### 4. The website password
+
+The site asks for `SITE_USER` and a password, so strangers can't use up your Gemini credits. The server stores only a hash of the password, never the password itself. Make the hash on the server. It asks for the password twice:
+
+```sh
+docker run --rm -it caddy:2.11.9-alpine caddy hash-password
+```
+
+It prints something like `$2a$14$Ab...`. Copy it into `.env` **between the single quotes**, e.g. `SITE_PASSWORD_HASH='$2a$14$Ab...'`. Without the quotes Docker Compose mangles the `$` signs and the password never works. Pick a long password and keep it in a password manager.
+
+To change it later: make a new hash, replace it in `.env`, then run `dc up -d caddy` (see `dc` below).
 
 ## Deploy
 
@@ -59,10 +73,10 @@ It builds the web app, copies the code to the server, and rebuilds and restarts 
 Then check it:
 
 ```sh
-curl https://audioguide.royaarkh.com/api/health
+curl -u roya https://audioguide.royaarkh.com/api/health   # asks for the site password
 ```
 
-Open https://audioguide.royaarkh.com on your phone, allow location, and make a story.
+Open https://audioguide.royaarkh.com on your phone, log in, allow location, and make a story.
 
 ## Looking around on the server
 
@@ -99,5 +113,6 @@ dc exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --
 ## When something goes wrong
 
 - **The site doesn't load or shows a certificate error:** DNS probably isn't pointing at the server yet. `dc logs caddy` shows why; Caddy keeps retrying by itself.
+- **The password is never accepted:** check that the hash in `.env` is inside single quotes, then `dc up -d caddy`.
 - **502 Bad Gateway on `/api/...`:** the API container is down or restarting. Check `dc logs api`.
 - **A story fails:** its error is shown in the app, and `dc logs api` has the details.

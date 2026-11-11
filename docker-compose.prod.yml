@@ -48,6 +48,9 @@ services:
   caddy:
     image: caddy:2.11.9-alpine
     restart: unless-stopped
+    environment:
+      SITE_USER: ${SITE_USER:?set SITE_USER in .env}
+      SITE_PASSWORD_HASH: ${SITE_PASSWORD_HASH:?set SITE_PASSWORD_HASH in .env}
     ports:
       - "80:80"
       - "443:443"
